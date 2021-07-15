@@ -1,0 +1,1 @@
+.\bin\MTT .\MTT\GreenstripCmd.txt

@@ -1,0 +1,1 @@
+.\MTT\inputs\greenstrip.lcp .\MTT\inputs\StripTest.input .\MTT\inputs\TestIgnitions5.shp 0 .\MTT\outputs\tests\StripTest 1

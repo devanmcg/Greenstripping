@@ -1,0 +1,39 @@
+ShortTerm-Inputs-File-Version-1
+
+# #
+# # F U E L   P A R A M E T E R S 
+# #
+
+FUEL_MOISTURES_DATA: 1
+0 2.33 3.33 4.33 4 5
+14 	2.33	3.33	4.33	60 100
+15	2.33	3.33	4.33	30	100
+16	2.33	3.33	4.33	30	100
+17	2.33	3.33	4.33	30	100
+18	2.33	3.33	4.33	30	100
+19	2.33	3.33	4.33	30	100
+# Full path to custom fuels file (*.fmd)
+CUSTOM_FUELS_FILE: C:\Users\devan.mcgranahan\GithubProjects\Greenstripping\FB\MTT\inputs\FuelModels\NoStrip.fmd
+#
+#
+# O T H E R   S E T T I N G S 
+#
+# Constant for all runs
+
+WIND_SPEED: 37.8
+WIND_DIRECTION: 180
+GRIDDED_WINDS_GENERATE: No
+NUMBER_PROCESSORS: 4
+
+MTT_RESOLUTION: 50
+MTT_SIM_TIME: 240
+MTT_TRAVEL_PATH_INTERVAL: 100
+MTT_SPOT_PROBABILITY: 0.0
+
+MTT_FILL_BARRIERS: 1
+
+# Request some flammap output as well...
+BURNPROBABILITY:
+FLAMELENGTH:
+SPREADRATE:
+INTENSITY:

@@ -1,0 +1,2 @@
+.\MTT\SampleData\19545.lcp .\MTT\SampleData\19545.input .\MTT\SampleData\test2.shp 0 .\MTT\SampleData\Outputs\NoBarriers 1
+.\MTT\SampleData\19545.lcp .\MTT\SampleData\19545.input .\MTT\SampleData\test2.shp .\MTT\SampleData\barrier2.shp .\MTT\SampleData\Outputs\Barriers 1

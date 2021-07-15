@@ -1,0 +1,2 @@
+FMNum	FMCode	H1	H10	H100	LiveH	LiveW	FMtype	SAV1H	LiveHSAV	LiveWSAV	depth	XtMoist	DHt	LHt	name
+14	cheat	0.7149820344446449	0	0	0	0	S	11483	0	0	30	12	18622	18622	Typical cheatgrass stand
