@@ -1,1 +1,1 @@
-.\bin\MTT .\MTT\GreenstripCmd.txt
+.\bin\MTT .\MTT\BatchCmd.txt

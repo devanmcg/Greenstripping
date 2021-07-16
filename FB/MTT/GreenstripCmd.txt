@@ -1,1 +1,1 @@
-.\MTT\inputs\greenstrip.lcp .\MTT\inputs\StripTest.input .\MTT\inputs\TestIgnitions5.shp 0 .\MTT\outputs\tests\StripTest 1
+.\MTT\inputs\greenstrip.lcp .\MTT\inputs\MoistureScenarios\LM=30_Strips1_eng_TotalLoad=0.1_PropFine=0.1_PropLive=0.1.input .\MTT\inputs\TestIgnitions5.shp 0 .\MTT\outputs\tests\StripTest 1

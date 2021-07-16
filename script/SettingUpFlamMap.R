@@ -84,7 +84,7 @@ fuels<- lcp_ras
   
   # Random ignition points
   
-  ig_num = 5
+  ig_num = 50
   ignitions <-  
     tibble(lat = runif(ig_num, ig_bbox$ymin, ig_bbox$ymax), 
            lon = runif(ig_num, ig_bbox$xmin, ig_bbox$xmax)) %>%
@@ -92,7 +92,7 @@ fuels<- lcp_ras
              crs = 26911) 
   
   ignitions %>%
-    write_sf('./FB/MTT/inputs/TestIgnitions5.shp', append = F)
+    write_sf('./FB/MTT/inputs/ignitions.shp', append = F)
   
   ggplot() + theme_bw() + 
     geom_stars(data = fuels_stars) +
