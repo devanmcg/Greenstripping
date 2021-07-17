@@ -1,0 +1,68 @@
+% Encoding: UTF-8
+
+@Article{pilliod2017,
+  author    = {Pilliod, David S and Welty, Justin L and Arkle, Robert S},
+  journal   = {Ecology and Evolution},
+  title     = {Refining the cheatgrass--fire cycle in the Great Basin: Precipitation timing and fine fuel composition predict wildfire trends},
+  year      = {2017},
+  number    = {19},
+  pages     = {8126--8151},
+  volume    = {7},
+  publisher = {Wiley Online Library},
+}
+
+@Article{bradley2018,
+  author    = {Bradley, Bethany A and Curtis, Caroline A and Fusco, Emily J and Abatzoglou, John T and Balch, Jennifer K and Dadashi, Sepideh and Tuanmu, Mao-Ning},
+  journal   = {Biological invasions},
+  title     = {Cheatgrass (Bromus tectorum) distribution in the intermountain Western United States and its relationship to fire frequency, seasonality, and ignitions},
+  year      = {2018},
+  number    = {6},
+  pages     = {1493--1506},
+  volume    = {20},
+  publisher = {Springer},
+}
+
+@Article{ellsworth2020,
+  author    = {Ellsworth, Lisa M and Kauffman, J Boone and Reis, Schyler A and Sapsis, David and Moseley, Kendra},
+  journal   = {Ecosphere},
+  title     = {Repeated fire altered succession and increased fire behavior in basin big sagebrush--native perennial grasslands},
+  year      = {2020},
+  number    = {5},
+  pages     = {e03124},
+  volume    = {11},
+  publisher = {Wiley Online Library},
+}
+
+@Article{tilley2020,
+  author    = {Tilley, Derek and Wolf, Mary},
+  journal   = {Native Plants Journal},
+  title     = {Curlycup gumweed (Grindelia squarrosa (Pursh) Dunal [Asteraceae]): a native forb candidate for inclusion in Great Basin greenstrips},
+  year      = {2020},
+  number    = {2},
+  pages     = {138--149},
+  volume    = {21},
+  publisher = {University of Wisconsin Press},
+}
+
+@Article{klinger2021,
+  author    = {Klinger, Rob and Underwood, Emma C and McKinley, Randy and Brooks, Matthew L},
+  journal   = {Frontiers in Ecology and Evolution},
+  title     = {Contrasting Geographic Patterns of Ignition Probability and Burn Severity in the Mojave Desert},
+  year      = {2021},
+  pages     = {79},
+  volume    = {9},
+  publisher = {Frontiers},
+}
+
+@Article{shinneman2019,
+  author    = {Shinneman, Douglas J and Germino, Matthew J and Pilliod, David S and Aldridge, Cameron L and Vaillant, Nicole M and Coates, Peter S},
+  journal   = {Frontiers in Ecology and the Environment},
+  title     = {The ecological uncertainty of wildfire fuel breaks: examples from the sagebrush steppe},
+  year      = {2019},
+  number    = {5},
+  pages     = {279--288},
+  volume    = {17},
+  publisher = {Wiley Online Library},
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}
