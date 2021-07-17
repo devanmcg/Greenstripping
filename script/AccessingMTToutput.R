@@ -4,17 +4,20 @@ fuels <- raster::raster('./FB/MTT/inputs/fuels.asc')
 
 fuels_stars <- st_as_stars(fuels)
 
+ig_sf <- read_sf('./FB/MTT/inputs', 
+                 'ignitions')
+
 # TO compare two
 mtt_paths <- 
   bind_rows(
-  read_sf('./FB/MTT/outputs/tests', 
-          'NoStrip_MTTMajorPaths', 
+  read_sf('./FB/MTT/outputs/completed', 
+          'LM=120_Strips1_eng_TotalLoad=0.1_PropFine=1_PropLive=0.1_MTTMajorPaths', 
           crs = 26911) %>%
-    mutate(Strip = "No strip"), 
-  read_sf('./FB/MTT/outputs/tests', 
-          'StripTest_MTTMajorPaths', 
+    mutate(Strip = "10% live fuel"), 
+  read_sf('./FB/MTT/outputs/completed', 
+          'LM=120_Strips1_eng_TotalLoad=0.1_PropFine=1_PropLive=0.9_MTTMajorPaths', 
           crs = 26911) %>%
-    mutate(Strip = "Default GR2") )
+    mutate(Strip = "90% live fuel") )
 
 # To just see one
   mtt_paths <-
@@ -23,21 +26,14 @@ mtt_paths <-
           crs = 26911)
 
 ggplot() + theme_bw() + 
-  geom_stars(data = fuels_stars) +
-  geom_rect(data = ig_bbox, 
-            aes(xmin = xmin, 
-                xmax = xmax,
-                ymin = ymin, 
-                ymax = ymax), 
-            fill = NA, 
-            color = "white", 
-            size = 1) +
-  geom_sf(data = ignitions, 
+  geom_stars(data = fuels_stars) + 
+  geom_sf(data = mtt_paths, 
+          color = 'red' ) +
+  geom_sf(data = ig_sf, 
           pch = 21, 
           fill = 'yellow', 
           color = 'orange') + 
-  geom_sf(data = mtt_paths, 
-          color = 'red' ) 
+  facet_wrap(~ Strip)
 
 
 
