@@ -54,17 +54,17 @@ pacman::p_load(tidyverse, foreach, doSNOW)
 
 # Create Cmd file 
 
-inputs = list.files('./FB/MTT/inputs/MoistureScenarios') 
+inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips1') 
 
 for(i in 1:length(inputs)) {
   call = noquote(paste0('.\\MTT\\inputs\\greenstrip.lcp ', 
-                        '.\\MTT\\inputs\\MoistureScenarios\\',
+                        '.\\MTT\\inputs\\MoistureScenarios\\Strips1\\',
                         inputs[i],
                         ' .\\MTT\\inputs\\ignitions.shp 0',
                         ' .\\MTT\\outputs\\',
                         tools::file_path_sans_ext(inputs[i]), 
                         '+ 1') )
   readr::write_lines(call, 
-                     file('./FB/MTT/BatchCmd.txt'), 
+                     file('./FB/MTT/Strips1BatchCmd.txt'), 
                      append = T)
   }
