@@ -1,1 +1,2 @@
 .\bin\MTT .\MTT\BatchCmd.txt
+.\bin\MTT .\MTT\Strips1BatchCmd.txt
