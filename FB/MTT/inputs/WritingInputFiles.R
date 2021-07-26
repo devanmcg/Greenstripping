@@ -53,18 +53,26 @@ pacman::p_load(tidyverse, foreach, doSNOW)
 }
 
 # Create Cmd file 
-
-inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips1') 
+# 1 strip
+  inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips1') 
+# 2 Strips 
+  strips = 2
+  inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips2') 
+  load("./FB/MTT/inputs/NonZeroScenariosR1.Rdata")
+  nz.input <- NonZeroScenariosR1 %>% 
+                mutate(scenario = str_replace(scenario, "Strips1",  "Strips2"), 
+                       scenario = paste0(scenario, '.input'))
+  inputs <- inputs[inputs %in% nz.input$scenario]
 
 for(i in 1:length(inputs)) {
   call = noquote(paste0('.\\MTT\\inputs\\greenstrip.lcp ', 
-                        '.\\MTT\\inputs\\MoistureScenarios\\Strips1\\',
+                        '.\\MTT\\inputs\\MoistureScenarios\\Strips', strips, '\\',
                         inputs[i],
                         ' .\\MTT\\inputs\\ignitions.shp 0',
                         ' .\\MTT\\outputs\\',
                         tools::file_path_sans_ext(inputs[i]), 
                         '+ 1') )
   readr::write_lines(call, 
-                     file('./FB/MTT/Strips1BatchCmd.txt'), 
+                     file(paste0('./FB/MTT/Strips', strips, 'BatchCmd.txt')), 
                      append = T)
   }
