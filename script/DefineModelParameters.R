@@ -1,9 +1,9 @@
-pacman::p_load(tidyverse, Rothermel, foreach, doSNOW)
+pacman::p_load(tidyverse, foreach, doSNOW)
 library(Rothermel, attach.required = F)
 
 data("SFM_metric")
-load('./Greenstripping/objects/GBprod.Rdata')
-load('./Greenstripping/objects/DayOfWx.Rdata')
+load('./objects/GBprod.Rdata')
+load('./objects/DayOfWx.Rdata')
 
 # Extreme fuel & weather parameters from historical fires
   cheat_params <-

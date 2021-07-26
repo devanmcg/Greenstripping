@@ -17,9 +17,12 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE,
                       fig.path = "C:/Users/devan.mcgranahan/GithubProjects/GreenstripSimulations/paper/figures/")
 
 fp = 'C:/Users/devan.mcgranahan/GitHubProjects/Greenstripping'
-pacman::p_load(tidyverse, wesanderson)
+pacman::p_load(tidyverse, sf, stars)
+
+pacman::p_load_current_gh("devanmcg/wesanderson")
 
 load(paste0(fp, '/FB/ros/GreenROS.Rdata'))
+
 ```
 
 
@@ -29,20 +32,35 @@ load(paste0(fp, '/FB/ros/GreenROS.Rdata'))
 GreenROS %>%
   filter(TotalLoad %in% c(min(TotalLoad), max(TotalLoad))) %>%
   mutate(`Fine fuel\nratio` = round(PropFine, 1),
-         PropLive = as.factor(PropLive*100), 
-         `Total load` = recode(as.character(TotalLoad), 
-                             '0.1' = "0.1 kg/ha", 
-                             '1' = "1.0 kg/ha")) %>%
+         PropLive = as.factor(PropLive), 
+                  `Total load` = recode(as.character(TotalLoad), 
+                     '0.1' = '0.24 t/ha', 
+                     '0.4' = '0.91 t/ha', 
+                     '0.7' = '1.57 t/ha', 
+                     '1' = '2.24 t/ha')) %>%
   ggplot( ) + theme_bw(16) + 
   geom_line(aes(x = LiveMoisture, 
                 y = ros, 
                 color = PropLive, 
                 group = PropLive), 
-            size = 1.5) +
+            size = 1.5, 
+            position = position_dodge(width = 1)) +
+    geom_point(aes(y = ros, 
+                x = LiveMoisture, 
+                fill = PropLive, 
+                shape = PropLive), 
+            size = 2.5, 
+            stroke = 1, 
+            color = "lightgrey", 
+            position = position_dodge(width = 1)) +
   labs(x = "Live fuel moisture content (%)", 
        y = 'Rate of spread (m/min)') + 
-  scale_color_manual("Live fuel (%)",
-                     values = wes_palette("Zissou1", 5, type = "continuous")) +
+    scale_shape_manual("Live:Dead\nfuel ratio",
+                     values = c(24, 21, 23, 22, 25)) +
+  scale_fill_manual("Live:Dead\nfuel ratio",
+                     values = wes_palette("FuelMoisture5")) +
+  scale_color_manual("Live:Dead\nfuel ratio",
+                     values = wes_palette("FuelMoisture5")) +
   facet_grid(`Fine fuel\nratio`~`Total load`, 
              labeller = label_both) +
   coord_cartesian(ylim = c(0,97)) + 
@@ -50,4 +68,25 @@ GreenROS %>%
                      labels = seq(30, 120, length.out = 4)) +
   theme(strip.text.y = element_text(angle = 0), 
         panel.grid.minor.x = element_blank() ) 
+```
+
+```{r mtt_example}
+load(paste0(fp, '/objects/mtt_paths.Rdata'))
+fuels <- raster::raster(paste0(fp, '/FB/MTT/inputs/fuels.asc'))
+fuels_stars <- st_as_stars(fuels)
+
+ig_sf <- read_sf(paste0(fp, '/FB/MTT/inputs'), 
+                 'ignitions')
+
+ggplot() + theme_bw() + 
+  geom_stars(data = fuels_stars) + 
+  geom_sf(data = mtt_paths, 
+          color = 'red' ) +
+  geom_sf(data = ig_sf, 
+          pch = 21, 
+          fill = 'yellow', 
+          color = 'orange') +   
+ # scale_fill_manual(values = wes_palette("Zissou1", 6, type = "continuous")) +
+  
+  facet_wrap(~ Strip)
 ```

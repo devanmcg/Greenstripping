@@ -10,20 +10,16 @@ ig_sf <- read_sf('./FB/MTT/inputs',
 # TO compare two
 mtt_paths <- 
   bind_rows(
-  read_sf('./FB/MTT/outputs/completed', 
-          'LM=120_Strips1_eng_TotalLoad=0.1_PropFine=1_PropLive=0.1_MTTMajorPaths', 
+  read_sf('S:/DevanMcG/FireModeling/MTToutput', 
+          'LM=120_Strips1_eng_TotalLoad=0.1_PropFine=1_PropLive=0.1+_MTTMajorPaths', 
           crs = 26911) %>%
     mutate(Strip = "10% live fuel"), 
-  read_sf('./FB/MTT/outputs/completed', 
-          'LM=120_Strips1_eng_TotalLoad=0.1_PropFine=1_PropLive=0.9_MTTMajorPaths', 
+  read_sf('S:/DevanMcG/FireModeling/MTToutput', 
+          'LM=120_Strips1_eng_TotalLoad=0.1_PropFine=1_PropLive=0.9+_MTTMajorPaths', 
           crs = 26911) %>%
     mutate(Strip = "90% live fuel") )
 
-# To just see one
-  mtt_paths <-
-    read_sf('./FB/MTT/outputs/tests', 
-          'StripTest_MTTMajorPaths', 
-          crs = 26911)
+save(mtt_paths, file = './objects/mtt_paths.Rdata')
 
 ggplot() + theme_bw() + 
   geom_stars(data = fuels_stars) + 

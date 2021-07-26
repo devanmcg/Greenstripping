@@ -1,7 +1,7 @@
 pacman::p_load(tidyverse, sf, climateR) 
 
-load('./Greenstripping/objects/GBafgc.Rdata')
-load('./Greenstripping/objects/gb_perims.Rdata')
+load('./objects/GBafgc.Rdata')
+load('./objects/gb_perims.Rdata')
 
 GBafgc %>%
   ggplot(aes(x = AFGC)) + theme_bw() +
