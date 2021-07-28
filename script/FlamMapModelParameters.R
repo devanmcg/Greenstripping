@@ -57,10 +57,10 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
   
     mod = 'GR2' # Base dynamic fuel model
   # Custom parameters: 
-    green_load <- seq(0.1, 1, length.out = 5)
+    green_load <- seq(0.24, 2.24, length.out = 5)
     green_ratio <- seq(0.1, 0.9, length.out = 5)
     prop_herb <- seq(0.1, 1, length.out = 5)
-
+ 
   # Cheatgrass .fmd row
     cheat_eng <- 
       tibble(
@@ -86,13 +86,14 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
     foreach(l=1:length(green_load), 
             .errorhandling = 'remove', 
             .inorder = FALSE) %:%
-      foreach(r=1:length(green_ratio), 
-              .inorder = FALSE,
-              .errorhandling = 'remove') %:% 
-      foreach(h=1:length(prop_herb), 
-              .inorder = FALSE, 
-              .errorhandling = 'stop', 
-              .packages = c('tidyverse', 'Rothermel')) %dopar% {
+    foreach(r=1:length(green_ratio), 
+            .inorder = FALSE,
+            .errorhandling = 'remove') %:% 
+    foreach(h=1:length(prop_herb), 
+            .inorder = FALSE, 
+            .errorhandling = 'stop', 
+            .packages = c('tidyverse', 'Rothermel')) %dopar% {
+          data(SFM_metric)
   # Define fuel model parameters 
     W = c((green_load[l]*(1-green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
           (green_load[l]*(1-green_ratio[r]))*(1-prop_herb[h]), 
@@ -100,13 +101,17 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
           (green_load[l]*(green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
           (green_load[l]*(green_ratio[r]))*(1-prop_herb[h])) 
     S = SFM_metric [mod, 7:11] 
+    mt = SFM_metric [mod, "Fuel_Model_Type"]
     D = SFM_metric [mod, "Fuel_Bed_Depth"] 
     Mx = SFM_metric [mod, "Mx_dead"] 
     H = SFM_metric [mod, 14:18]
-  # build tibble for .fmd 
+  #
+  # Table compilation
+  #
     CellStats = paste0( 'TotalLoad=', green_load[l], 
                         '_PropFine=', prop_herb[h], 
                         '_PropLive=', green_ratio[r])
+  # build tibble for .fmd using standard English values
     strip_eng <- 
       tibble(
         FMNum = 15, 
@@ -116,7 +121,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
         H100 = W[3] * 2.2417, 
         LiveH = W[4] * 2.2417, 
         LiveW = W[5] * 2.2417, 
-        FMtype = "S", 
+        FMtype = mt, 
         SAV1H = 2000, 
         LiveHSAV = 1800, 
         LiveWSAV = 1500, 
@@ -125,7 +130,26 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
         DHt = 8000, 
         LHt = 8000, 
         name = "Custom greenstrip") %>%
-    mutate(across(H1:LiveW, ~round(., 2)))
+    mutate(across(H1:LiveW, ~round(., 3)))
+  # build tibble for Rothermel::ros() using metric values
+      tibble(
+        scenario = CellStats, 
+        H1 = W[1], 
+        H10 = W[2],
+        H100 = W[3], 
+        LiveH = W[4], 
+        LiveW = W[5] , 
+        FMtype = mt, 
+        SAV1H = 2000, 
+        LiveHSAV = 1800, 
+        LiveWSAV = 1500, 
+        depth = D , 
+        XtMoist = Mx, 
+        DHt = 8001, 
+        LHt = 8000) %>%
+      mutate(across(H1:LiveW, ~round(., 3))) %>%
+    write_tsv('./FB/ros/inputs.txt', 
+              col_names=F, append=T)
     # Create .fmd for strip scenarios
     # One strip
       bind_rows(cheat_eng, 

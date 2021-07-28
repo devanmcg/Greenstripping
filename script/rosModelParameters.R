@@ -1,7 +1,8 @@
 pacman::p_load(tidyverse, foreach, doSNOW)
+library(Rothermel, attach.required = FALSE)
 
-load('./Greenstripping/objects/GBprod.Rdata')
-load('./Greenstripping/objects/DayOfWx.Rdata')
+load('./objects/GBprod.Rdata')
+load('./objects/DayOfWx.Rdata')
 
 # Extreme fuel & weather parameters from historical fires
   cheat_params <-
@@ -57,10 +58,10 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
   
   mod = 'GR2' # Base fuel model
   # Custom parameters: 
-  green_load <- seq(0.1, 1, length.out = 5)
-  green_ratio <- seq(0.1, 0.9, length.out = 5)
-  prop_herb <- seq(0.1, 1, length.out = 5)
-  green_H2O <- seq(30, 120, length.out = 8)
+  green_load <- seq(0.24, 2.24, length.out = 2)
+  green_ratio <- seq(0.1, 0.9, length.out = 2)
+  prop_herb <- seq(0.1, 1, length.out = 2)
+  green_H2O <- seq(30, 120, length.out = 2)
   
   GreenROS <- 
     foreach(l=1:length(green_load), 
@@ -79,8 +80,8 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
             .combine = rbind, 
             .errorhandling = 'stop', 
             .inorder = TRUE, 
-            .packages = c('tidyverse')) %dopar% {
-              
+            .packages = c('tidyverse', 'Rothermel')) %dopar% {
+            data(SFM_metric)
             green_m <- c(cheat$FDFM, cheat$FDFM+2, 0, green_H2O[m], green_H2O[m])
             
             tibble(
@@ -89,7 +90,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
               PropLive = green_ratio[r],
               LiveMoisture = green_H2O[m], 
               ros = as.numeric(
-                Rothermel::ros (
+                ros (
                   modeltype = SFM_metric [mod, "Fuel_Model_Type"], 
                   w = c((green_load[l]*(1-green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
                         (green_load[l]*(1-green_ratio[r]))*(1-prop_herb[h]), 
@@ -123,4 +124,36 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
   facet_grid(PropFine~TotalLoad) +
     scale_x_continuous(breaks = seq(30, 120, length.out = 4), 
                        labels = seq(30, 120, length.out = 4)) 
+  
+  # TL 0.1 (0.24), PF 0.1, PL 0.9
+  ros (
+    modeltype = SFM_metric [mod, "Fuel_Model_Type"], 
+    w = c(0.0024,  # 1 hr (dead)
+          0.0216, # 10 hr (dead)
+          0, 
+          0.0216,  # live herb
+          0.1944), # live woody
+    s = SFM_metric [mod, 7:11], 
+    delta = SFM_metric [mod, "Fuel_Bed_Depth"], 
+    mx.dead = SFM_metric [mod, "Mx_dead"], 
+    h = SFM_metric [mod, 14:18], 
+    m = green_m, 
+    u = wind, 
+    slope = 0)[15]
+  
+  # TL 1 (2.24), PF 0.1, PL 0.9
+  ros (
+    modeltype = SFM_metric [mod, "Fuel_Model_Type"], 
+    w = c(0.02,  # 1 hr (dead)
+          0.2, # 10 hr (dead)
+          0, 
+          0.2,  # live herb
+          1.82), # live woody
+    s = SFM_metric [mod, 7:11], 
+    delta = SFM_metric [mod, "Fuel_Bed_Depth"], 
+    mx.dead = SFM_metric [mod, "Mx_dead"], 
+    h = SFM_metric [mod, 14:18], 
+    m = green_m, 
+    u = wind, 
+    slope = 0)[15]
   

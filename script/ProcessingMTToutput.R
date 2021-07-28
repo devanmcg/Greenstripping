@@ -52,7 +52,7 @@ raster::crs(ros_ras) <- raster::crs(fuels)
       bind_rows(ros_results) 
           }
   stopCluster(cl)
-  beepr::beep() 
+  #beepr::beep() 
   Sys.time() - begin
 }
 
@@ -73,6 +73,7 @@ ros_results %>%
                      '0.7' = '\n1.57 t/ha', 
                      '1' = '\n2.24 t/ha'), 
          LM = as.numeric(LM)) %>%
+  filter(width == "1") %>%
   ggplot() + theme_bw(14) + 
     geom_line(aes(y = prop*100, 
                   x = LM, 
@@ -109,11 +110,13 @@ ros_results %>%
   select(scenario) %>%
   separate(scenario, c('LM', 'width', 'units', 
                        'TL', 'FD', 'LF'), sep = '_') %>%
-  select(-units, -width) %>%
-  # filter(LM == 'LM=120', 
+  select(-units) %>%
+  # filter(LM == 'LM=120',
   #        TL == 'TotalLoad=0.1') %>%
-  group_by(LM, TL) %>%
-  summarize(count = n()) # missing LM=120, TotalLoad=0.1, PropFine != 1, 0.7
+  group_by(LM, width, TL) %>%
+  summarize(count = n()) %>% # missing LM=120, TotalLoad=0.1, PropFine != 1, 0.7
+  arrange(width) %>%
+  View()
 
 # Scenarios that require more strips
 NonZeroScenariosR1 <-
