@@ -1,54 +1,53 @@
 pacman::p_load(tidyverse, foreach, doSNOW)
-library(Rothermel, attach.required = FALSE)
 
 load('./objects/GBprod.Rdata')
 load('./objects/DayOfWx.Rdata')
 
 # Extreme fuel & weather parameters from historical fires
-  cheat_params <-
-    bind_rows(
-      GBprod %>%
-        group_by(Event_ID) %>%
-        summarize(FuelLoad = sum(biomass), 
-                  .groups = 'drop') %>%
-        summarize(Mean = mean(FuelLoad), 
-                  SD = sd(FuelLoad), 
-                  lwr = quantile(FuelLoad, 0.05), 
-                  upr = quantile(FuelLoad, 0.95))  %>%
-        mutate(param = 'FuelLoad'),
-      DayOfWx %>%
-        group_by(param) %>%
-        summarize(Mean = mean(DayOfValue), 
-                  SD = sd(DayOfValue), 
-                  lwr = quantile(DayOfValue, 0.05), 
-                  upr = quantile(DayOfValue, 0.95), 
-                  .groups = 'drop') )  %>%
-        mutate( extreme = case_when(
-                 param == 'Fmax' ~ upr, 
-                 param == 'FuelLoad' ~ upr * 0.000453592, 
-                 param == 'wind_vel' ~ upr * 3.6,
-                 param %in% c("FDFM", 'rhmin') ~ lwr )) %>%
-        select(param, Mean, SD, extreme)
-  
-  cheat <- cheat_params %>%
-    select(param, extreme) %>%
-    pivot_wider(names_from = 'param', 
-                values_from = "extreme")
+cheat_params <-
+  bind_rows(
+    GBprod %>%
+      group_by(Event_ID) %>%
+      summarize(FuelLoad = sum(biomass), 
+                .groups = 'drop') %>%
+      summarize(Mean = mean(FuelLoad), 
+                SD = sd(FuelLoad), 
+                lwr = quantile(FuelLoad, 0.05), 
+                upr = quantile(FuelLoad, 0.95))  %>%
+      mutate(param = 'FuelLoad'),
+    DayOfWx %>%
+      group_by(param) %>%
+      summarize(Mean = mean(DayOfValue), 
+                SD = sd(DayOfValue), 
+                lwr = quantile(DayOfValue, 0.05), 
+                upr = quantile(DayOfValue, 0.95), 
+                .groups = 'drop') )  %>%
+  mutate( extreme = case_when(
+    param == 'Fmax' ~ upr, 
+    param == 'FuelLoad' ~ upr * 0.000453592, 
+    param == 'wind_vel' ~ upr * 3.6,
+    param %in% c("FDFM", 'rhmin') ~ lwr )) %>%
+  select(param, Mean, SD, extreme)
+
+cheat <- cheat_params %>%
+  select(param, extreme) %>%
+  pivot_wider(names_from = 'param', 
+              values_from = "extreme")
 
 # Environmental parameters 
-  wind = cheat$wind_vel
-  slope = 0
-  
+wind = cheat$wind_vel
+slope = 0
+
 # Cheatgrass fuel model parameters 
-  cheat_mt = SFM_metric ["A1", "Fuel_Model_Type"]
-  cheat_w <- c(cheat$FuelLoad, 0, 0, 0, 0)
-  cheat_s <- SFM_metric ["A1", 7:11]
-  cheat_delta <- SFM_metric ["A1", "Fuel_Bed_Depth"]
-  cheat_mx.dead <- SFM_metric ["A1", "Mx_dead"]
-  cheat_h <- SFM_metric ["A1", 14:18]
-  cheat_m <- c(cheat$FDFM, 0, 0, 0, 0)
-  
-# Run Rothermel::ros 
+cheat_mt = SFM_metric ["A1", "Fuel_Model_Type"]
+cheat_w <- c(cheat$FuelLoad, 0, 0, 0, 0)
+cheat_s <- SFM_metric ["A1", 7:11]
+cheat_delta <- SFM_metric ["A1", "Fuel_Bed_Depth"]
+cheat_mx.dead <- SFM_metric ["A1", "Mx_dead"]
+cheat_h <- SFM_metric ["A1", 14:18]
+cheat_m <- c(cheat$FDFM, 0, 0, 0, 0)
+
+# Build .fmd files
 {
   begin = Sys.time()
   cores = parallel::detectCores()
@@ -56,104 +55,77 @@ load('./objects/DayOfWx.Rdata')
   registerDoSNOW(cl)
   clusterCall(cl, function(x) .libPaths(x), .libPaths())
   
-  mod = 'GR2' # Base fuel model
+  mod = 'GR2' # Base dynamic fuel model
   # Custom parameters: 
-  green_load <- seq(0.24, 2.24, length.out = 2)
-  green_ratio <- seq(0.1, 0.9, length.out = 2)
-  prop_herb <- seq(0.1, 1, length.out = 2)
-  green_H2O <- seq(30, 120, length.out = 2)
+  green_load <- seq(0.24, 2.24, length.out = 4)
+  green_ratio <- seq(0.1, 0.9, length.out = 4)
+  prop_herb <- seq(0.1, 1, length.out = 4)
   
-  GreenROS <- 
-    foreach(l=1:length(green_load), 
-            .combine = bind_rows, 
-            .errorhandling = 'remove', 
-            .inorder = TRUE) %:%
+  # Cheatgrass .fmd row
+  cheat_eng <- 
+    tibble(
+      FMNum = 14, 
+      FMCode = "cheat", 
+      H1 = cheat_w[1] * 2.2417, 
+      H10 = cheat_w[2] * 2.2417,
+      H100 = cheat_w[3] * 2.2417, 
+      LiveH = cheat_w[4] * 2.2417, 
+      LiveW = cheat_w[5] * 2.2417, 
+      FMtype = cheat_mt, 
+      SAV1H = 3500, 
+      LiveHSAV = 1500, 
+      LiveWSAV = 1500, 
+      depth = cheat_delta * 0.033, 
+      XtMoist = cheat_mx.dead, 
+      DHt = 8000, 
+      LHt = 8000, 
+      name = "Typical cheatgrass stand")  %>%
+    mutate(across(H1:LiveW, ~round(., 2)))
+  
+  # Loop through fuel scenarios
+  foreach(l=1:length(green_load), 
+          .errorhandling = 'remove', 
+          .inorder = FALSE) %:%
     foreach(r=1:length(green_ratio), 
-            .combine = rbind, 
-            .inorder = TRUE,
+            .inorder = FALSE,
             .errorhandling = 'remove') %:% 
     foreach(h=1:length(prop_herb), 
-            .combine = rbind, 
-            .inorder = TRUE,
-            .errorhandling = 'remove') %:% 
-    foreach(m=1:length(green_H2O), 
-            .combine = rbind, 
+            .inorder = FALSE, 
             .errorhandling = 'stop', 
-            .inorder = TRUE, 
             .packages = c('tidyverse', 'Rothermel')) %dopar% {
-            data(SFM_metric)
-            green_m <- c(cheat$FDFM, cheat$FDFM+2, 0, green_H2O[m], green_H2O[m])
-            
-            tibble(
-              TotalLoad = green_load[l], 
-              PropFine = prop_herb[h], 
-              PropLive = green_ratio[r],
-              LiveMoisture = green_H2O[m], 
-              ros = as.numeric(
-                ros (
-                  modeltype = SFM_metric [mod, "Fuel_Model_Type"], 
-                  w = c((green_load[l]*(1-green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
-                        (green_load[l]*(1-green_ratio[r]))*(1-prop_herb[h]), 
-                        0, 
-                        (green_load[l]*(green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
-                        (green_load[l]*(green_ratio[r]))*(1-prop_herb[h])), 
-                  s = SFM_metric [mod, 7:11], 
-                  delta = SFM_metric [mod, "Fuel_Bed_Depth"], 
-                  mx.dead = SFM_metric [mod, "Mx_dead"], 
-                  h = SFM_metric [mod, 14:18], 
-                  m = green_m, 
-                  u = wind, 
-                  slope = 0)[15] ) 
-              )
-            }
-  stopCluster(cl)
-  Sys.time() - begin
-}
+      data(SFM_metric)
+      # Define fuel model parameters 
+      W = c((green_load[l]*(1-green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
+            (green_load[l]*(1-green_ratio[r]))*(1-prop_herb[h]), 
+            0, 
+            (green_load[l]*(green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
+            (green_load[l]*(green_ratio[r]))*(1-prop_herb[h])) 
+      S = SFM_metric [mod, 7:11] 
+      mt = SFM_metric [mod, "Fuel_Model_Type"]
+      D = SFM_metric [mod, "Fuel_Bed_Depth"] 
+      Mx = SFM_metric [mod, "Mx_dead"] 
+      H = SFM_metric [mod, 14:18]
 
-#  save(GreenROS, file = "./Greenstripping/FB/ros/GreenROS.Rdata")
-  
-  GreenROS %>%
-    filter(TotalLoad %in% c(min(TotalLoad), max(TotalLoad)), 
-           PropFine %in% c(min(PropFine), max(PropFine))) %>%
-    mutate(PropLive = as.factor(PropLive)) %>%
-  ggplot( ) + theme_bw(14) + 
-    geom_line(aes(x = LiveMoisture, 
-                  y = ros, 
-                  color = PropLive, 
-                  group = PropLive)) +
-  facet_grid(PropFine~TotalLoad) +
-    scale_x_continuous(breaks = seq(30, 120, length.out = 4), 
-                       labels = seq(30, 120, length.out = 4)) 
-  
-  # TL 0.1 (0.24), PF 0.1, PL 0.9
-  ros (
-    modeltype = SFM_metric [mod, "Fuel_Model_Type"], 
-    w = c(0.0024,  # 1 hr (dead)
-          0.0216, # 10 hr (dead)
-          0, 
-          0.0216,  # live herb
-          0.1944), # live woody
-    s = SFM_metric [mod, 7:11], 
-    delta = SFM_metric [mod, "Fuel_Bed_Depth"], 
-    mx.dead = SFM_metric [mod, "Mx_dead"], 
-    h = SFM_metric [mod, 14:18], 
-    m = green_m, 
-    u = wind, 
-    slope = 0)[15]
-  
-  # TL 1 (2.24), PF 0.1, PL 0.9
-  ros (
-    modeltype = SFM_metric [mod, "Fuel_Model_Type"], 
-    w = c(0.02,  # 1 hr (dead)
-          0.2, # 10 hr (dead)
-          0, 
-          0.2,  # live herb
-          1.82), # live woody
-    s = SFM_metric [mod, 7:11], 
-    delta = SFM_metric [mod, "Fuel_Bed_Depth"], 
-    mx.dead = SFM_metric [mod, "Mx_dead"], 
-    h = SFM_metric [mod, 14:18], 
-    m = green_m, 
-    u = wind, 
-    slope = 0)[15]
-  
+      # build tibble for Rothermel::ros() using metric values
+      
+      ModStats = paste0( 'TotalLoad=', green_load[l], 
+                         '_PropFine=', prop_herb[h], 
+                         '_PropLive=', green_ratio[r])
+        tibble(
+          scenario = ModStats,
+          H1 = W[1],
+          H10 = W[2],
+          H100 = W[3],
+          LiveH = W[4],
+          LiveW = W[5] ,
+          FMtype = mt,
+          SAV1H = 2000,
+          LiveHSAV = 1800,
+          LiveWSAV = 1500,
+          depth = D ,
+          XtMoist = Mx,
+          DHt = 8001,
+          LHt = 8000) %>%
+        mutate(across(H1:LiveW, ~round(., 3))) %>%
+      write_tsv('./FB/ros/inputs.txt',
+                col_names=F, append=T)

@@ -8,7 +8,7 @@ pacman::p_load(tidyverse, foreach, doSNOW)
   registerDoSNOW(cl)
   clusterCall(cl, function(x) .libPaths(x), .libPaths())
   
-  cpu_num = cores
+  cpu_num = 6
   fmd <- list.files('./FB/MTT/inputs/FuelModels') %>%
     tools::file_path_sans_ext()
   lhfm = seq(30, 120, length.out = 4)
@@ -24,11 +24,11 @@ pacman::p_load(tidyverse, foreach, doSNOW)
                  "FUEL_MOISTURES_DATA: 7",
                  "0 2.33 4 5 10 30",
                  "14 2.33 4 5 10 30",
-                 paste0("15 2.33 4 5 ", lhfm[m], " ", lhfm[m]-5),
-                 paste0("16 2.33 4 5 ", lhfm[m], " ", lhfm[m]-5),
-                 paste0("17 2.33 4 5 ", lhfm[m], " ", lhfm[m]-5),
-                 paste0("18 2.33 4 5 ", lhfm[m], " ", lhfm[m]-5),
-                 paste0("19 2.33 4 5 ", lhfm[m], " ", lhfm[m]-5),
+                 paste0("15 2.33 4 5 ", lhfm[m], " ", lhfm[m]+30),
+                 paste0("16 2.33 4 5 ", lhfm[m], " ", lhfm[m]+30),
+                 paste0("17 2.33 4 5 ", lhfm[m], " ", lhfm[m]+30),
+                 paste0("18 2.33 4 5 ", lhfm[m], " ", lhfm[m]+30),
+                 paste0("19 2.33 4 5 ", lhfm[m], " ", lhfm[m]+30),
                  paste0("CUSTOM_FUELS_FILE: D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\inputs\\FuelModels\\", fmd[f], ".fmd"),
                  "WIND_SPEED: 37.8",
                  "WIND_DIRECTION: 180",
@@ -37,12 +37,10 @@ pacman::p_load(tidyverse, foreach, doSNOW)
                  "MTT_RESOLUTION: 50",
                  "MTT_SIM_TIME: 60",
                  "MTT_TRAVEL_PATH_INTERVAL: 100",
-                 "MTT_SPOT_PROBABILITY: 0.0",
-                 "BURNPROBABILITY:",
-                 "FLAMELENGTH:",
-                 "SPREADRATE:",
-                 "INTENSITY:" ), 
-               file(paste0('./FB/MTT/inputs/MoistureScenarios/LM=',
+                 "MTT_SPOT_PROBABILITY: 0.0"), 
+               file(paste0('./FB/MTT/inputs/MoistureScenarios/', 
+                           substr(fmd[f], 1, 7),
+                            '/LM=',
                            lhfm[m], 
                            "_",
                            fmd[f], 
@@ -65,11 +63,11 @@ pacman::p_load(tidyverse, foreach, doSNOW)
   inputs <- inputs[inputs %in% nz.input$scenario]
 
 for(i in 1:length(inputs)) {
-  call = noquote(paste0('.\\MTT\\inputs\\greenstrip.lcp ', 
-                        '.\\MTT\\inputs\\MoistureScenarios\\Strips', strips, '\\',
+  call = noquote(paste0('D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\inputs\\greenstrip.lcp ', 
+                        'D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\inputs\\MoistureScenarios\\Strips', strips, '\\',
                         inputs[i],
-                        ' .\\MTT\\inputs\\ignitions.shp 0',
-                        ' .\\MTT\\outputs\\',
+                        ' D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\inputs\\ignitions.shp 0',
+                        ' D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\outputs\\',
                         tools::file_path_sans_ext(inputs[i]), 
                         '+ 1') )
   readr::write_lines(call, 

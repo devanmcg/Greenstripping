@@ -1,7 +1,7 @@
 pacman::p_load(tidyverse, foreach, doSNOW)
 
-load('./Greenstripping/objects/GBprod.Rdata')
-load('./Greenstripping/objects/DayOfWx.Rdata')
+load('./objects/GBprod.Rdata')
+load('./objects/DayOfWx.Rdata')
 
 # Extreme fuel & weather parameters from historical fires
   cheat_params <-
@@ -57,9 +57,9 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
   
     mod = 'GR2' # Base dynamic fuel model
   # Custom parameters: 
-    green_load <- seq(0.24, 2.24, length.out = 5)
-    green_ratio <- seq(0.1, 0.9, length.out = 5)
-    prop_herb <- seq(0.1, 1, length.out = 5)
+    green_load <- seq(0.24, 2.24, length.out = 4)
+    green_ratio <- seq(0.1, 0.9, length.out = 4)
+    prop_herb <- seq(0.1, 1, length.out = 4)
  
   # Cheatgrass .fmd row
     cheat_eng <- 
@@ -108,9 +108,9 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
   #
   # Table compilation
   #
-    CellStats = paste0( 'TotalLoad=', green_load[l], 
-                        '_PropFine=', prop_herb[h], 
-                        '_PropLive=', green_ratio[r])
+    CellStats = paste0( 'TotalLoad=', round(green_load[l], 2), 
+                        '_PropFine=', round(prop_herb[h], 1), 
+                        '_PropLive=', round(green_ratio[r], 1))
   # build tibble for .fmd using standard English values
     strip_eng <- 
       tibble(
@@ -131,25 +131,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
         LHt = 8000, 
         name = "Custom greenstrip") %>%
     mutate(across(H1:LiveW, ~round(., 3)))
-  # build tibble for Rothermel::ros() using metric values
-      tibble(
-        scenario = CellStats, 
-        H1 = W[1], 
-        H10 = W[2],
-        H100 = W[3], 
-        LiveH = W[4], 
-        LiveW = W[5] , 
-        FMtype = mt, 
-        SAV1H = 2000, 
-        LiveHSAV = 1800, 
-        LiveWSAV = 1500, 
-        depth = D , 
-        XtMoist = Mx, 
-        DHt = 8001, 
-        LHt = 8000) %>%
-      mutate(across(H1:LiveW, ~round(., 3))) %>%
-    write_tsv('./FB/ros/inputs.txt', 
-              col_names=F, append=T)
+
     # Create .fmd for strip scenarios
     # One strip
       bind_rows(cheat_eng, 
@@ -158,7 +140,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '17', FMNum))), 
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '18', FMNum))), 
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '19', FMNum)))) %>%
-      write_tsv(paste0('./Greenstripping/FB/MTT/inputs/FuelModels/', 
+      write_tsv(paste0('./FB/MTT/inputs/FuelModels/', 
                        'Strips1_eng_', 
                        CellStats, 
                        '.fmd'), 
@@ -170,7 +152,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '17', FMNum))), 
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '18', FMNum))), 
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '19', FMNum)))) %>%
-        write_tsv(paste0('./Greenstripping/FB/MTT/inputs/FuelModels/', 
+        write_tsv(paste0('./FB/MTT/inputs/FuelModels/', 
                          'Strips2_eng_', 
                          CellStats, 
                          '.fmd'), 
@@ -182,7 +164,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
                 mutate(strip_eng, FMNum = as.numeric(chartr('15', '17', FMNum))), 
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '18', FMNum))), 
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '19', FMNum)))) %>%
-        write_tsv(paste0('./Greenstripping/FB/MTT/inputs/FuelModels/', 
+        write_tsv(paste0('./FB/MTT/inputs/FuelModels/', 
                          'Strips3_eng_', 
                          CellStats, 
                          '.fmd'), 
@@ -194,7 +176,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
                 mutate(strip_eng, FMNum = as.numeric(chartr('15', '17', FMNum))), 
                 mutate(strip_eng, FMNum = as.numeric(chartr('15', '18', FMNum))), 
                 mutate(cheat_eng, FMNum = as.numeric(chartr('14', '19', FMNum)))) %>%
-        write_tsv(paste0('./Greenstripping/FB/MTT/inputs/FuelModels/', 
+        write_tsv(paste0('./FB/MTT/inputs/FuelModels/', 
                          'Strips4_eng_', 
                          CellStats, 
                          '.fmd'), 
@@ -206,7 +188,7 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
                 mutate(strip_eng, FMNum = as.numeric(chartr('15', '17', FMNum))), 
                 mutate(strip_eng, FMNum = as.numeric(chartr('15', '18', FMNum))), 
                 mutate(strip_eng, FMNum = as.numeric(chartr('15', '19', FMNum)))) %>%
-        write_tsv(paste0('./Greenstripping/FB/MTT/inputs/FuelModels/', 
+        write_tsv(paste0('./FB/MTT/inputs/FuelModels/', 
                          'Strips5_eng_', 
                          CellStats, 
                          '.fmd'), 
@@ -215,82 +197,4 @@ load('./Greenstripping/objects/DayOfWx.Rdata')
   stopCluster(cl)
   Sys.time() - begin
   }
-  
-  
-# Run Rothermel::ros 
-{
-  begin = Sys.time()
-  cores = parallel::detectCores()
-  cl <- makeSOCKcluster(cores) 
-  registerDoSNOW(cl)
-  clusterCall(cl, function(x) .libPaths(x), .libPaths())
-  
-  mod = 'GR2' # Base fuel model
-  # Custom parameters: 
-  green_load <- seq(0.1, 1, length.out = 5)
-  green_ratio <- seq(0.1, 0.9, length.out = 5)
-  prop_herb <- seq(0.1, 1, length.out = 5)
-  green_H2O <- seq(30, 120, length.out = 8)
-  
-  GreenROS <- 
-    foreach(l=1:length(green_load), 
-            .combine = bind_rows, 
-            .errorhandling = 'remove', 
-            .inorder = TRUE) %:%
-    foreach(r=1:length(green_ratio), 
-            .combine = rbind, 
-            .inorder = TRUE,
-            .errorhandling = 'remove') %:% 
-    foreach(h=1:length(prop_herb), 
-            .combine = rbind, 
-            .inorder = TRUE,
-            .errorhandling = 'remove') %:% 
-    foreach(m=1:length(green_H2O), 
-            .combine = rbind, 
-            .errorhandling = 'stop', 
-            .inorder = TRUE, 
-            .packages = c('tidyverse')) %dopar% {
-              
-            green_m <- c(cheat$FDFM, cheat$FDFM+2, 0, green_H2O[m], green_H2O[m])
-            
-            tibble(
-              TotalLoad = green_load[l], 
-              PropFine = prop_herb[h], 
-              PropLive = green_ratio[r],
-              LiveMoisture = green_H2O[m], 
-              ros = as.numeric(
-                Rothermel::ros (
-                  modeltype = SFM_metric [mod, "Fuel_Model_Type"], 
-                  w = c((green_load[l]*(1-green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
-                        (green_load[l]*(1-green_ratio[r]))*(1-prop_herb[h]), 
-                        0, 
-                        (green_load[l]*(green_ratio[r]))*(prop_herb[h]),  # 1 hr (dead)
-                        (green_load[l]*(green_ratio[r]))*(1-prop_herb[h])), 
-                  s = SFM_metric [mod, 7:11], 
-                  delta = SFM_metric [mod, "Fuel_Bed_Depth"], 
-                  mx.dead = SFM_metric [mod, "Mx_dead"], 
-                  h = SFM_metric [mod, 14:18], 
-                  m = green_m, 
-                  u = wind, 
-                  slope = 0)[15] ) 
-              )
-            }
-  stopCluster(cl)
-  Sys.time() - begin
-}
-
-#  save(GreenROS, file = "./Greenstripping/FB/ros/GreenROS.Rdata")
-  
-  GreenROS %>%
-    filter(TotalLoad %in% c(min(TotalLoad), max(TotalLoad)), 
-           PropFine %in% c(min(PropFine), max(PropFine))) %>%
-    mutate(PropLive = as.factor(PropLive)) %>%
-  ggplot( ) + theme_bw(14) + 
-    geom_line(aes(x = LiveMoisture, 
-                  y = ros, 
-                  color = PropLive, 
-                  group = PropLive)) +
-  facet_grid(PropFine~TotalLoad) +
-    scale_x_continuous(breaks = seq(30, 120, length.out = 4), 
-                       labels = seq(30, 120, length.out = 4)) 
   
