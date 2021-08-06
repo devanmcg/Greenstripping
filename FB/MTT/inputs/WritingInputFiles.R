@@ -52,7 +52,8 @@ pacman::p_load(tidyverse, foreach, doSNOW)
 
 # Create Cmd file 
 # 1 strip
-  inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips1') 
+  inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips1')
+  strips = 1 
 # 2 Strips 
   strips = 2
   inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips2') 
@@ -67,7 +68,7 @@ for(i in 1:length(inputs)) {
                         'D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\inputs\\MoistureScenarios\\Strips', strips, '\\',
                         inputs[i],
                         ' D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\inputs\\ignitions.shp 0',
-                        ' D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\outputs\\',
+                        ' S:\\DevanMcG\\FireModeling\\MTToutput\\',
                         tools::file_path_sans_ext(inputs[i]), 
                         '+ 1') )
   readr::write_lines(call, 
