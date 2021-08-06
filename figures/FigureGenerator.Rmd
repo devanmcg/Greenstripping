@@ -21,53 +21,51 @@ pacman::p_load(tidyverse, sf, stars)
 
 pacman::p_load_current_gh("devanmcg/wesanderson")
 
-load(paste0(fp, '/FB/ros/GreenROS.Rdata'))
+load(paste0(fp, '/objects/ros_results.Rdata'))
 
 ```
 
 
-# Non-spatial spread 
-
-```{r ros_output, fig.height=8}
-GreenROS %>%
-  filter(TotalLoad %in% c(min(TotalLoad), max(TotalLoad))) %>%
-  mutate(`Fine fuel\nratio` = round(PropFine, 1),
-         PropLive = as.factor(PropLive), 
-                  `Total load` = recode(as.character(TotalLoad), 
-                     '0.1' = '0.24 t/ha', 
-                     '0.4' = '0.91 t/ha', 
-                     '0.7' = '1.57 t/ha', 
-                     '1' = '2.24 t/ha')) %>%
-  ggplot( ) + theme_bw(16) + 
-  geom_line(aes(x = LiveMoisture, 
-                y = ros, 
-                color = PropLive, 
-                group = PropLive), 
-            size = 1.5, 
-            position = position_dodge(width = 1)) +
-    geom_point(aes(y = ros, 
-                x = LiveMoisture, 
-                fill = PropLive, 
-                shape = PropLive), 
-            size = 2.5, 
-            stroke = 1, 
-            color = "lightgrey", 
-            position = position_dodge(width = 1)) +
-  labs(x = "Live fuel moisture content (%)", 
-       y = 'Rate of spread (m/min)') + 
+```{r mtt_output, fig.height=8}
+ros_results %>%
+  select(scenario, prop, ros) %>%
+  separate(scenario, c('LM', 'width', 'units', 
+                       'TL', 'FD', 'LF'), sep = '_') %>%
+  select(-units) %>% 
+  mutate(across(c(LM:LF), ~sub("^\\D+", "", .)), 
+         `Fine:Coarse\nfuel ratio` = FD,
+         `Total load` = paste0('\n', as.character(TL), ' t/ha'), 
+         LM = as.numeric(LM)) %>%
+  filter(width == "1") %>%
+  ggplot() + theme_bw(14) + 
+    geom_line(aes(y = prop*100, 
+                  x = LM, 
+                  color = LF, 
+                  group = LF), 
+              size = 1.1, 
+              position = position_dodge(width = 1)) +
+    geom_point(aes(y = prop*100, 
+                  x = LM, 
+                  fill = LF, 
+                  shape = LF), 
+              size = 2.5, 
+              stroke = 1, 
+              color = "lightgrey", 
+              position = position_dodge(width = 1)) +
+    labs(x = 'Live fuel moisture content (%)', 
+         y = 'Protected area burned (%)') +
     scale_shape_manual("Live:Dead\nfuel ratio",
-                     values = c(24, 21, 23, 22, 25)) +
-  scale_fill_manual("Live:Dead\nfuel ratio",
-                     values = wes_palette("FuelMoisture5")) +
-  scale_color_manual("Live:Dead\nfuel ratio",
-                     values = wes_palette("FuelMoisture5")) +
-  facet_grid(`Fine fuel\nratio`~`Total load`, 
-             labeller = label_both) +
-  coord_cartesian(ylim = c(0,97)) + 
-  scale_x_continuous(breaks = seq(30, 120, length.out = 4), 
-                     labels = seq(30, 120, length.out = 4)) +
-  theme(strip.text.y = element_text(angle = 0), 
-        panel.grid.minor.x = element_blank() ) 
+                       values = c(23, 22, 21, 24)) +
+    scale_fill_manual("Live:Dead\nfuel ratio",
+                       values = wes_palette("FuelMoisture4")) +
+    scale_color_manual("Live:Dead\nfuel ratio",
+                       values = wes_palette("FuelMoisture4")) +
+    scale_x_continuous(breaks = seq(30, 120, length.out = 4), 
+                       labels = seq(30, 120, length.out = 4)) +
+    facet_grid(`Fine:Coarse\nfuel ratio` ~`Total load`, 
+               labeller = label_both) +
+    theme(strip.text.y = element_text(angle = 0), 
+          panel.grid.minor.x = element_blank() )
 ```
 
 ```{r mtt_example}

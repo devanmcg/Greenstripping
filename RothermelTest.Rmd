@@ -1,0 +1,100 @@
+---
+title: Inconsistencies between `Rothermel::ros` and BehavePlus v. 6.0
+output: html_document
+---
+
+```{r echo=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(Rothermel) # v. 1.2
+data("SFM_metric")
+```
+
+
+```{r echo = FALSE}
+LoLoad <- c( 0.024, # 1 hr
+             0,     # 10 hr
+             0,     # 100 hr
+             0.216, # Live fine
+             0 )   # Live coarse
+HiLoad <- c( 0.224, # 1 hr
+             0,     # 10 hr
+             0,     # 100 hr
+             2.02,  # Live fine
+             0 )   # Live coarse
+```
+
+# Low fuel load
+
+Total load = `r sum(LoLoad)` tonnes/ha.
+
+```{r}
+ros (
+   modeltype = 'D', 
+   w = c( 0.024, # 1 hr
+          0,     # 10 hr
+          0,     # 100 hr
+          0.216, # Live fine
+          0 ),   # Live coarse,
+   s = SFM_metric ['GR2', 7:11], 
+   delta = 10, 
+   mx.dead = 15, 
+   h = SFM_metric ['GR2', 14:18], 
+   m = c(2, 4, 0, 60, 90), 
+   u = 10, 
+   slope = 0)[15]
+```
+
+This is not consistent with BehavePlus, which returns 0.6 m/min. 
+
+# Moderate load
+
+```{r}
+ros (
+   modeltype = 'D', 
+   w = c( 0.22, # 1 hr
+          0,     # 10 hr
+          0,     # 100 hr
+          0.22, # Live fine
+          0 ),   # Live coarse,
+   s = SFM_metric ['GR2', 7:11], 
+   delta = 10, 
+   mx.dead = 15, 
+   h = SFM_metric ['GR2', 14:18], 
+   m = c(2, 4, 0, 60, 90), 
+   u = 10, 
+   slope = 0)[15]
+```
+
+This is not consistent with BehavePlus, which returns 2.2 m/min. 
+
+# High fuel load 
+
+Total load = `r sum(HiLoad)` tonnes/ha.
+
+```{r}
+ros (
+   modeltype = 'D', 
+   w =  c( 0.224,  # 1 hr
+           0,     # 10 hr
+           0,     # 100 hr
+           2.02,  # Live fine
+           0 ),   # Live coarse,
+   s = SFM_metric ['GR2', 7:11], 
+   delta = 10, 
+   mx.dead = 15, 
+   h = SFM_metric ['GR2', 14:18], 
+   m = c(2, 4, 0, 60, 90), 
+   u = 10, 
+   slope = 0)[15]
+```
+
+This is consistent with BehavePlus, which returns 6.5 m/min.
+
+### Session info
+
+```{r echo = FALSE}
+sessionInfo()
+```

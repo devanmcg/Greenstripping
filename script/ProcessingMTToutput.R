@@ -3,19 +3,6 @@ pacman::p_load(tidyverse, sf, stars, foreach, doSNOW)
 pacman::p_load_gh("devanmcg/wesanderson")
 }
 
-fuels <- raster::raster('./FB/MTT/inputs/fuels.asc')
-raster::crs(fuels)
-
-fuelbed <- 
-  as.character(fuels[c(raster::cellFromRowColCombine(fuels, 
-                                          c(1:nrow(fuels)), 
-                                          c(1:ncol(fuels))))]) 
-fb_ras <- terra::rast(fuelbed)
-
-st_as_stars(fb_ras)
-fuels_stars <- st_as_stars(fuels)
-raster::crs(ros_ras) <- raster::crs(fuels)
-
 # Process ROS output
 
 {
@@ -25,8 +12,8 @@ raster::crs(ros_ras) <- raster::crs(fuels)
   registerDoSNOW(cl)
   clusterCall(cl, function(x) .libPaths(x), .libPaths())
   
-  ros_fp = 'C:/Users/devan.mcgranahan/OneDrive - USDA/Research/MTT'
-  # ros_fp = 'S:/DevanMcG/FireModeling/MTToutput'
+  #ros_fp = 'C:/Users/devan.mcgranahan/OneDrive - USDA/Research/MTT'
+  ros_fp = 'S:/DevanMcG/FireModeling/MTToutput'
   files <- list.files(ros_fp) 
   ros_files <- files[substr(files, nchar(files)-6, nchar(files)) == "ROS.asc" ] 
   
@@ -52,11 +39,13 @@ raster::crs(ros_ras) <- raster::crs(fuels)
       bind_rows(ros_results) 
           }
   stopCluster(cl)
-  #beepr::beep() 
+  beepr::beep() 
   Sys.time() - begin
 }
 
 # Plotting
+
+  # save(ros_results, file = './objects/ros_results.Rdata')
 
 ros_results %>%
   select(scenario, prop, ros) %>%
@@ -67,11 +56,7 @@ ros_results %>%
   mutate(across(c(LM:LF), ~sub("^\\D+", "", .)), 
          `Fine:Coarse\nfuel ratio` = FD,
          # LF = as.character(as.numeric(LF) * 100), 
-         `Total load` = recode(as.character(TL), 
-                     '0.1' = '\n0.24 t/ha', 
-                     '0.4' = '\n0.91 t/ha', 
-                     '0.7' = '\n1.57 t/ha', 
-                     '1' = '\n2.24 t/ha'), 
+         `Total load` = paste0('\n', as.character(TL), ' t/ha'), 
          LM = as.numeric(LM)) %>%
   filter(width == "1") %>%
   ggplot() + theme_bw(14) + 
@@ -81,28 +66,28 @@ ros_results %>%
                   group = LF), 
               size = 1.1, 
               position = position_dodge(width = 1)) +
-  geom_point(aes(y = prop*100, 
-                x = LM, 
-                fill = LF, 
-                shape = LF), 
-            size = 2.5, 
-            stroke = 1, 
-            color = "lightgrey", 
-            position = position_dodge(width = 1)) +
-  labs(x = 'Live fuel moisture content (%)', 
-       y = 'Protected area burned (%)') +
-  scale_shape_manual("Live:Dead\nfuel ratio",
-                     values = c(23, 22, 21, 24)) +
-  scale_fill_manual("Live:Dead\nfuel ratio",
-                     values = wes_palette("FuelMoisture4")) +
-  scale_color_manual("Live:Dead\nfuel ratio",
-                     values = wes_palette("FuelMoisture4")) +
-  scale_x_continuous(breaks = seq(30, 120, length.out = 4), 
-                     labels = seq(30, 120, length.out = 4)) +
-  facet_grid(`Fine:Coarse\nfuel ratio` ~`Total load`, 
-             labeller = label_both) +
-  theme(strip.text.y = element_text(angle = 0), 
-        panel.grid.minor.x = element_blank() )
+    geom_point(aes(y = prop*100, 
+                  x = LM, 
+                  fill = LF, 
+                  shape = LF), 
+              size = 2.5, 
+              stroke = 1, 
+              color = "lightgrey", 
+              position = position_dodge(width = 1)) +
+    labs(x = 'Live fuel moisture content (%)', 
+         y = 'Protected area burned (%)') +
+    scale_shape_manual("Live:Dead\nfuel ratio",
+                       values = c(23, 22, 21, 24)) +
+    scale_fill_manual("Live:Dead\nfuel ratio",
+                       values = wes_palette("FuelMoisture4")) +
+    scale_color_manual("Live:Dead\nfuel ratio",
+                       values = wes_palette("FuelMoisture4")) +
+    scale_x_continuous(breaks = seq(30, 120, length.out = 4), 
+                       labels = seq(30, 120, length.out = 4)) +
+    facet_grid(`Fine:Coarse\nfuel ratio` ~`Total load`, 
+               labeller = label_both) +
+    theme(strip.text.y = element_text(angle = 0), 
+          panel.grid.minor.x = element_blank() )
 
 # Diagnostics 
 # Missing scenarios
@@ -114,7 +99,7 @@ ros_results %>%
   # filter(LM == 'LM=120',
   #        TL == 'TotalLoad=0.1') %>%
   group_by(LM, width, TL) %>%
-  summarize(count = n()) %>% # missing LM=120, TotalLoad=0.1, PropFine != 1, 0.7
+  summarize(count = n()) %>% 
   arrange(width) %>%
   View()
 
@@ -143,3 +128,17 @@ ggplot() + theme_bw() +
 
 art_ras <- raster::raster('./FB/MTT/outputs/tests/NoStrip_ArrivalTime.asc')
 raster::plot(art_ras)
+
+
+fuels <- raster::raster('./FB/MTT/inputs/fuels.asc')
+raster::crs(fuels)
+
+fuelbed <- 
+  as.character(fuels[c(raster::cellFromRowColCombine(fuels, 
+                                                     c(1:nrow(fuels)), 
+                                                     c(1:ncol(fuels))))]) 
+fb_ras <- terra::rast(fuelbed)
+
+st_as_stars(fb_ras)
+fuels_stars <- st_as_stars(fuels)
+raster::crs(ros_ras) <- raster::crs(fuels)
