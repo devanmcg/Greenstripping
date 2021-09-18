@@ -16,6 +16,7 @@ pacman::p_load_gh("devanmcg/wesanderson")
   ros_fp = 'S:/DevanMcG/FireModeling/MTToutput'
   files <- list.files(ros_fp) 
   ros_files <- files[substr(files, nchar(files)-6, nchar(files)) == "ROS.asc" ] 
+  int_files <- files[substr(files, nchar(files)-6, nchar(files)) == "ITY.asc" ]
   
   ros_results <- tibble() 
   ros_results <- 
@@ -26,15 +27,26 @@ pacman::p_load_gh("devanmcg/wesanderson")
           .packages = c('tidyverse')) %dopar% {
   
     ros_ras <- raster::raster(file.path(ros_fp, ros_files[f]))
+    int_ras <- raster::raster(file.path(ros_fp, int_files[f]))
     
+  # Get fire behavior data for 15 row
+    ros15 <- ros_ras[c(raster::cellFromRow(ros_ras, 
+                                            c(171:171)))] %>%
+                mean(., na.rm = TRUE)
+    int15 <- int_ras[c(raster::cellFromRow(int_ras, 
+                                           c(171:171)))] %>%
+                mean(., na.rm = TRUE)
+  # Get fire behavior data from "protected area"  
     ros_ras[c(raster::cellFromRowColCombine(ros_ras, 
-                                            c(1:165), 
+                                            c(1:171), 
                                             c(1:1040)))] %>% 
       as_tibble() %>%
       mutate(value = ifelse(is.na(value), 0, value)) %>%
       filter(value > 0) %>%
-      summarize(prop = n() / c(165*1040), 
-                ros = mean(value)) %>%
+      summarize(prop = n() / c(171*1040), 
+                ros = mean(value), 
+                ros15 = ros15, 
+                int15 = int15) %>%
       mutate(scenario = gsub("\\+.*","", ros_files[f])) %>%
       bind_rows(ros_results) 
           }

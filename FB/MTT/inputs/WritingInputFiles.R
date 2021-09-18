@@ -62,6 +62,40 @@ pacman::p_load(tidyverse, foreach, doSNOW)
                 mutate(scenario = str_replace(scenario, "Strips1",  "Strips2"), 
                        scenario = paste0(scenario, '.input'))
   inputs <- inputs[inputs %in% nz.input$scenario]
+# 3 Strips 
+  strips = 3
+  inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips3') 
+  load("./FB/MTT/inputs/NonZeroScenariosR2.Rdata")
+  nz.input <- NonZeroScenariosR2 %>% 
+    mutate(scenario = str_replace(scenario, "Strips2",  "Strips3"), 
+           scenario = paste0(scenario, '.input'))
+  inputs <- inputs[inputs %in% nz.input$scenario]
+# 4 Strips 
+  strips = 4
+  inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips4') 
+  load("./FB/MTT/inputs/NonZeroScenariosR3.Rdata")
+  nz.input <- NonZeroScenariosR3 %>% 
+                mutate(scenario2 = scenario) %>%
+                separate(scenario2, c('LM', 'width', 'units', 
+                                     'TL', 'FD', 'LF'), sep = '_') %>%
+                filter(width == 'Strips3') %>%
+                select(scenario) %>%
+                mutate(scenario = str_replace(scenario, "Strips3",  "Strips4"), 
+                       scenario = paste0(scenario, '.input')) 
+  inputs <- inputs[inputs %in% nz.input$scenario]
+# 5 Strips 
+  strips = 5
+  inputs = list.files('./FB/MTT/inputs/MoistureScenarios/Strips5') 
+  load("./FB/MTT/inputs/NonZeroScenariosR4.Rdata")
+  nz.input <- NonZeroScenariosR4 %>% 
+    mutate(scenario2 = scenario) %>%
+    separate(scenario2, c('LM', 'width', 'units', 
+                          'TL', 'FD', 'LF'), sep = '_') %>%
+    filter(width == 'Strips4') %>%
+    select(scenario) %>%
+    mutate(scenario = str_replace(scenario, "Strips4",  "Strips5"), 
+           scenario = paste0(scenario, '.input')) 
+  inputs <- inputs[inputs %in% nz.input$scenario]
 
 for(i in 1:length(inputs)) {
   call = noquote(paste0('D:\\GitHubProjects\\Greenstripping\\FB\\MTT\\inputs\\greenstrip.lcp ', 

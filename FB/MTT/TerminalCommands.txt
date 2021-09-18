@@ -3,3 +3,6 @@ cd D:\GitHubProjects\Greenstripping\FB\
 	.\bin\MTT .\MTT\BatchCmd.txt
 	.\bin\MTT .\MTT\Strips1BatchCmd.txt
 	.\bin\MTT .\MTT\Strips2BatchCmd.txt
+	.\bin\MTT .\MTT\Strips3BatchCmd.txt
+	.\bin\MTT .\MTT\Strips4BatchCmd.txt
+	.\bin\MTT .\MTT\Strips5BatchCmd.txt
