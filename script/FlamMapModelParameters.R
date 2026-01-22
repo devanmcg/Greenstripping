@@ -1,7 +1,10 @@
 pacman::p_load(tidyverse, foreach, doSNOW)
-
-load('./objects/GBprod.Rdata')
-load('./objects/DayOfWx.Rdata')
+# This is probably necessary?
+  library(Rothermel, attach.required = F)
+  data("SFM_metric")
+# These objects are in this repo
+  load('./objects/GBprod.Rdata')
+  load('./objects/DayOfWx.Rdata')
 
 # Extreme fuel & weather parameters from historical fires
   cheat_params <-
